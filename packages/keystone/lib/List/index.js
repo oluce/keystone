@@ -1208,13 +1208,6 @@ module.exports = class List {
     };
   }
 
-  async _registerBacklinks(existingItem, mutationState) {
-    const fields = this.fields.filter(field => field.isRelationship);
-    await this._mapToFields(fields, field =>
-      field.registerBacklink(existingItem[field.path], existingItem, mutationState)
-    );
-  }
-
   async _resolveDefaults({ existingItem, context, originalInput }) {
     const args = {
       existingItem,
@@ -1412,22 +1405,17 @@ module.exports = class List {
   }
 
   async _nestedMutation(mutationState, context, mutation) {
-    const { Relationship } = require('@keystonejs/fields');
     // Set up a fresh mutation state if we're the root mutation
     const isRootMutation = !mutationState;
     if (isRootMutation) {
       mutationState = {
         afterChangeStack: [], // post-hook stack
-        queues: {}, // backlink queues
         transaction: {}, // transaction
       };
     }
 
     // Perform the mutation
     const { result, afterHook } = await mutation(mutationState);
-
-    // resolve backlinks
-    await Relationship.resolveBacklinks(context, mutationState);
 
     // Push after-hook onto the stack and resolve all if we're the root.
     const { afterChangeStack } = mutationState;
@@ -1632,9 +1620,7 @@ module.exports = class List {
   async _deleteSingle(existingItem, context, mutationState) {
     const operation = 'delete';
 
-    return await this._nestedMutation(mutationState, context, async mutationState => {
-      await this._registerBacklinks(existingItem, mutationState);
-
+    return await this._nestedMutation(mutationState, context, async () => {
       await this._validateDelete(existingItem, context, operation);
 
       await this._beforeDelete(existingItem, context, operation);

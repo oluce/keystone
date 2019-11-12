@@ -17,7 +17,7 @@ class BaseKeystoneAdapter {
     return this.listAdapters[key];
   }
 
-  async connect({ name }) {
+  async connect({ name, keystone }) {
     // Connect to the database
     await this._connect({ name }, this.config);
 
@@ -26,7 +26,7 @@ class BaseKeystoneAdapter {
       // Validate the minimum database version requirements are met.
       await this.checkDatabaseVersion();
 
-      const taskResults = await this.postConnect();
+      const taskResults = await this.postConnect({ keystone });
       const errors = taskResults.filter(({ isRejected }) => isRejected).map(({ reason }) => reason);
 
       if (errors.length) {
@@ -121,19 +121,21 @@ class BaseListAdapter {
   }
 
   async findAll() {
-    return Promise.all((await this._findAll()).map(item => this.onPostRead(item)));
+    return Promise.all((await this._itemsQuery({})).map(item => this.onPostRead(item)));
   }
 
   async findById(id) {
-    return this.onPostRead(this._findById(id));
+    return this.onPostRead((await this._itemsQuery({ where: { id }, first: 1 }))[0] || null);
   }
 
   async find(condition) {
-    return Promise.all((await this._find(condition)).map(item => this.onPostRead(item)));
+    return Promise.all(
+      (await this._itemsQuery({ where: { ...condition } })).map(item => this.onPostRead(item))
+    );
   }
 
   async findOne(condition) {
-    return this.onPostRead(this._findOne(condition));
+    return this.onPostRead((await this._itemsQuery({ where: { ...condition }, first: 1 }))[0]);
   }
 
   async itemsQuery(args, { meta = false, from = {} } = {}) {

@@ -59,9 +59,10 @@ class MongooseAdapter extends BaseKeystoneAdapter {
       ...mongooseConfig,
     });
   }
-  async postConnect() {
+
+  async postConnect({ keystone }) {
     return await pSettle(
-      Object.values(this.listAdapters).map(listAdapter => listAdapter.postConnect())
+      Object.values(this.listAdapters).map(listAdapter => listAdapter._postConnect())
     );
   }
 
@@ -129,6 +130,8 @@ class MongooseListAdapter extends BaseListAdapter {
 
     // Need to call postConnect() once all fields have registered and the database is connected to.
     this.model = null;
+
+    this.rels = undefined;
   }
 
   prepareFieldAdapter(fieldAdapter) {
@@ -142,7 +145,19 @@ class MongooseListAdapter extends BaseListAdapter {
    *
    * @return Promise<>
    */
-  async postConnect() {
+  async _postConnect({ keystone }) {
+    this.rels = keystone.rels;
+    this.fieldAdapters.forEach(fieldAdapter => {
+      fieldAdapter.rel = keystone.rels.find(
+        ({ left, right }) =>
+          left.adapter === fieldAdapter || (right && right.adapter === fieldAdapter)
+      );
+      if (fieldAdapter._hasRealKeys()) {
+        this.realKeys.push(
+          ...(fieldAdapter.realKeys ? fieldAdapter.realKeys : [fieldAdapter.path])
+        );
+      }
+    });
     if (this.configureMongooseSchema) {
       this.configureMongooseSchema(this.schema, { mongoose: this.mongoose });
     }
@@ -174,39 +189,54 @@ class MongooseListAdapter extends BaseListAdapter {
     return this.model.syncIndexes();
   }
 
-  _create(data) {
-    return this.model.create(data);
+  ////////// Mutations //////////
+
+  async _create(data) {
+    const realData = data;
+
+    // Unset any real 1:1 fields
+
+    // Insert the real data into the table
+    const item = await this.model.create(realData);
+
+    // For every non-real-field, update the corresponding FK/join table.
+    const manyItem = {};
+
+    // This currently over-populates the returned item.
+    // We should only be populating non-many fields, but the non-real-fields are generally many,
+    // which we want to ignore, with the exception of 1:1 fields with the FK on the other table,
+    // which we want to actually keep!
+    return { ...item, ...manyItem };
   }
 
-  _delete(id) {
+  async _update(id, data) {
+    const realData = data;
+
+    // Unset any real 1:1 fields
+
+    // Update the real data
+    // Avoid any kind of injection attack by explicitly doing a `$set` operation
+    // Return the modified item, not the original
+    const item = await this.model.findByIdAndUpdate(
+      id,
+      { $set: realData },
+      { new: true, runValidators: true, context: 'query' }
+    );
+
+    // For every many-field, update the many-table
+
+    return item;
+  }
+
+  async _delete(id) {
+    // Traverse all other lists and remove references to this item
+    // We can't just traverse our own fields, because we might have been
+    // a silent partner in a relationship, so we have know self-knowledge of it.
+    // Delete the actual item
     return this.model.findByIdAndRemove(id);
   }
 
-  _update(id, data) {
-    // Avoid any kind of injection attack by explicitly doing a `$set` operation
-    // Return the modified item, not the original
-    return this.model.findByIdAndUpdate(
-      id,
-      { $set: data },
-      { new: true, runValidators: true, context: 'query' }
-    );
-  }
-
-  _findAll() {
-    return this.model.find();
-  }
-
-  _findById(id) {
-    return this.model.findById(id);
-  }
-
-  _find(condition) {
-    return this.model.find(condition);
-  }
-
-  _findOne(condition) {
-    return this.model.findOne(condition);
-  }
+  ////////// Queries //////////
 
   graphQlQueryPathToMongoField(path) {
     const fieldAdapter = this.fieldAdaptersByPath[path];

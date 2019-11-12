@@ -173,7 +173,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
               })
             );
 
-            test.failing(
+            test(
               'With nested connect',
               runner(setupKeystone, async ({ keystone }) => {
                 const { companies } = await createInitialData(keystone);
@@ -202,16 +202,26 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
                 expect(Company.location.id.toString()).toBe(Location.id.toString());
                 expect(Location.company.id.toString()).toBe(Company.id.toString());
 
-                // The nested company should not have a location
-                const result = await graphqlRequest({
+                const {
+                  data: { allCompanies },
+                } = await graphqlRequest({
                   keystone,
-                  query: `{ Company(where: { id: "${data.createCompany.location.company.id}"} ) { id location { id } } }`,
+                  query: `{ allCompanies { id location { id company { id }} } }`,
                 });
-                expect(result.data.Company.location.id).toBe(null);
+
+                // The nested company should not have a location
+                expect(
+                  allCompanies.filter(({ id }) => id === Company.id)[0].location.company.id
+                ).toEqual(Company.id);
+                allCompanies
+                  .filter(({ id }) => id !== Company.id)
+                  .forEach(company => {
+                    expect(company.location).toBe(null);
+                  });
               })
             );
 
-            test.failing(
+            test(
               'With nested create',
               runner(setupKeystone, async ({ keystone }) => {
                 const locationName = sampleOne(alphanumGenerator);
@@ -240,11 +250,20 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
                 expect(Location.company.id.toString()).toBe(Company.id.toString());
 
                 // The nested company should not have a location
-                const result = await graphqlRequest({
+                const {
+                  data: { allCompanies },
+                } = await graphqlRequest({
                   keystone,
-                  query: `{ Company(where: { id: "${data.createCompany.location.company.id}"} ) { id location { id } } }`,
+                  query: `{ allCompanies { id location { id company { id }} } }`,
                 });
-                expect(result.data.Company.location.id).toBe(null);
+                expect(
+                  allCompanies.filter(({ id }) => id === Company.id)[0].location.company.id
+                ).toEqual(Company.id);
+                allCompanies
+                  .filter(({ id }) => id !== Company.id)
+                  .forEach(company => {
+                    expect(company.location).toBe(null);
+                  });
               })
             );
           });

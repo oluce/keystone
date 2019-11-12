@@ -1,19 +1,38 @@
 const { Keystone } = require('@keystonejs/keystone');
-const { MongooseAdapter } = require('@keystonejs/adapter-mongoose');
-const { Text } = require('@keystonejs/fields');
+const { KnexAdapter } = require('@keystonejs/adapter-knex');
+const { Relationship } = require('@keystonejs/fields');
 const { GraphQLApp } = require('@keystonejs/app-graphql');
 const { AdminUIApp } = require('@keystonejs/app-admin-ui');
 const { StaticApp } = require('@keystonejs/app-static');
 
 const keystone = new Keystone({
   name: 'Keystone To-Do List',
-  adapter: new MongooseAdapter(),
+  adapter: new KnexAdapter({
+    knexOptions: { connection: 'postgres://keystone5:k3yst0n3@localhost:5432/keystone' },
+  }),
 });
 
-keystone.createList('Todo', {
-  schemaDoc: 'A list of things which need to be done',
+keystone.createList('Foo', {
   fields: {
-    name: { type: Text, schemaDoc: 'This is the thing you need to do', isRequired: true },
+    // No reference
+    a: { type: Relationship, ref: 'Bar' },
+    b: { type: Relationship, ref: 'Bar', many: true },
+
+    // With reference
+    c: { type: Relationship, ref: 'Bar.w' }, // 1:1
+    d: { type: Relationship, ref: 'Bar.x', many: true }, // 1:N
+    e: { type: Relationship, ref: 'Bar.y' }, // N:1
+    f: { type: Relationship, ref: 'Bar.z', many: true }, // N:N
+  },
+});
+
+keystone.createList('Bar', {
+  fields: {
+    // With reference
+    w: { type: Relationship, ref: 'Foo.c' }, // 1:1
+    x: { type: Relationship, ref: 'Foo.d' }, // 1:N
+    y: { type: Relationship, ref: 'Foo.e', many: true }, // N:1
+    z: { type: Relationship, ref: 'Foo.f', many: true }, // N:N
   },
 });
 
