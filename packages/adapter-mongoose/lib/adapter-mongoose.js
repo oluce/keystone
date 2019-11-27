@@ -189,12 +189,20 @@ class MongooseListAdapter extends BaseListAdapter {
     return this.model.syncIndexes();
   }
 
+  async _unsetOneToOneValues(realData) {
+    // If there's a 1:1 FK in the real data we need to go and
+    // delete it from any other item;
+  }
+
   ////////// Mutations //////////
+
+  async _createOrUpdateField({ value, adapter, itemId }) {}
 
   async _create(data) {
     const realData = data;
 
     // Unset any real 1:1 fields
+    await this._unsetOneToOneValues(realData);
 
     // Insert the real data into the table
     const item = await this.model.create(realData);
@@ -213,6 +221,7 @@ class MongooseListAdapter extends BaseListAdapter {
     const realData = data;
 
     // Unset any real 1:1 fields
+    await this._unsetOneToOneValues(realData);
 
     // Update the real data
     // Avoid any kind of injection attack by explicitly doing a `$set` operation
