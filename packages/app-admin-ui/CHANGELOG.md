@@ -1,5 +1,51 @@
 # @keystonejs/app-admin-ui
 
+## 5.3.0
+
+### Minor Changes
+
+- [`733ac847`](https://github.com/keystonejs/keystone/commit/733ac847cab488dc92a30e7b458191d750fd5a3d) [#1983](https://github.com/keystonejs/keystone/pull/1983) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Fixes a bug with schema generation and display in the AdminUI when a list contains only fields where access control is false.
+
+* [`2cc83b12`](https://github.com/keystonejs/keystone/commit/2cc83b12be757019ba25658139478e8f5b2b19c6) [#1988](https://github.com/keystonejs/keystone/pull/1988) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Adds an `isOrderable` option to field implementation that controls whether the field is sortable in the AdminUI. Defaults to false and is set to true by sortable field types.
+
+  The `parseFieldAccess` method can now also be overwritten in the field implementation class.
+
+* [`6a348b93`](https://github.com/keystonejs/keystone/commit/6a348b93607c305c4ba61c1406a4acd508f33f64) [#1978](https://github.com/keystonejs/keystone/pull/1978) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Added a new field type 'Computed'. This allows creation of fields that return data computed from other field values or outside Keystone.
+
+### Patch Changes
+
+- [`946a52fd`](https://github.com/keystonejs/keystone/commit/946a52fd7057bb73f4ffd465ef51498172926866) [#1995](https://github.com/keystonejs/keystone/pull/1995) Thanks [@Vultraz](https://github.com/Vultraz)! - Updated react and react-dom to 16.12.0
+
+* [`640cbd95`](https://github.com/keystonejs/keystone/commit/640cbd9556cb8848fdfbe9689ac4aadd1be29fba) [#1997](https://github.com/keystonejs/keystone/pull/1997) Thanks [@Vultraz](https://github.com/Vultraz)! - Updated logo on signin and signout pages
+* Updated dependencies [[`267dab2f`](https://github.com/keystonejs/keystone/commit/267dab2fee5bbea711c417c13366862e8e0ab3be), [`8188d76c`](https://github.com/keystonejs/keystone/commit/8188d76cb3f5d3e112ef95fd4e1887db9a520d9d), [`af1e9e4d`](https://github.com/keystonejs/keystone/commit/af1e9e4d3b74753b903b20641b51df99184793df), [`946a52fd`](https://github.com/keystonejs/keystone/commit/946a52fd7057bb73f4ffd465ef51498172926866), [`7c46673b`](https://github.com/keystonejs/keystone/commit/7c46673b927b08f3f7628ae2557156262f2e1049), [`2a52b3ce`](https://github.com/keystonejs/keystone/commit/2a52b3ce48e0df9589f4958c4d79e2b19aa1c134), [`2cc83b12`](https://github.com/keystonejs/keystone/commit/2cc83b12be757019ba25658139478e8f5b2b19c6), [`6a348b93`](https://github.com/keystonejs/keystone/commit/6a348b93607c305c4ba61c1406a4acd508f33f64)]:
+  - @keystonejs/fields@6.0.0
+  - @arch-ui/alert@0.0.9
+  - @arch-ui/badge@0.0.9
+  - @arch-ui/button@0.0.11
+  - @arch-ui/card@0.0.7
+  - @arch-ui/confirm@0.0.10
+  - @arch-ui/controls@0.1.1
+  - @arch-ui/dialog@0.0.11
+  - @arch-ui/drawer@0.0.12
+  - @arch-ui/dropdown@0.0.10
+  - @arch-ui/fields@2.0.3
+  - @arch-ui/hooks@0.0.5
+  - @arch-ui/icons@0.0.6
+  - @arch-ui/input@0.1.2
+  - @arch-ui/layout@0.2.6
+  - @arch-ui/loading@0.0.10
+  - @arch-ui/lozenge@0.0.9
+  - @arch-ui/navbar@0.1.3
+  - @arch-ui/options@0.0.11
+  - @arch-ui/pagination@0.0.11
+  - @arch-ui/pill@0.1.8
+  - @arch-ui/popout@0.0.10
+  - @arch-ui/select@0.1.1
+  - @arch-ui/tooltip@0.1.4
+  - @arch-ui/typography@0.0.10
+  - @keystonejs/build-field-types@5.1.2
+  - @keystonejs/field-views-loader@5.1.0
+
 ## 5.2.0
 
 ### Minor Changes
